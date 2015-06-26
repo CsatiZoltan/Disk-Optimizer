@@ -10,6 +10,7 @@ SIAM J. Comput., 3(4), 299–325., 1974
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <setjmp.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
@@ -17,6 +18,7 @@ SIAM J. Comput., 3(4), 299–325., 1974
 
 /* Function prototypes */
 
+void cerror(void *ptr, char *where);
 struct settings processInputs(struct settings defaultSettings, int argc, char *argv[]);
 void printHelp();
 int nlines(char *inputFileName);
@@ -129,6 +131,8 @@ int main(int argc, char *argv[])
 	if (N == -5)
 		return -5;
 	struct item *givenStructure = calloc(N, sizeof(struct item));
+	cerror(givenStructure, "main");
+
 	loadData(givenStructure, N, inputFileName);
 
 	/* Sort input array in descending order */
@@ -151,16 +155,20 @@ int main(int argc, char *argv[])
 
 	/* Dynamically allocate the nested structures (use calloc so that zero-filling is done) */
 	struct bin *binArray = calloc(nBins, sizeof(struct bin)); /* create the bins */
+	cerror(binArray, "main");
 	for (int j = 0; j < nBins; j++) /* dynamically allocate members of the array of bin structures */
 	{
 		binArray[j].itemArray = calloc(nItems, sizeof(struct item)); /* create the structures holding the items*/
+		cerror(binArray[j].itemArray, "main");
 	}
 
 
 	/* =========== Offline Best Fit Algorithm =========== */
 
 	double *frSpc = calloc(nBins, sizeof(double)); /* free space in binArray (i.e. binSize - usedSpace) */
+	cerror(frSpc, "main");
 	double *out = calloc(nBins, sizeof(double)); /* similar as *frSpc, but for the processed values */
+	cerror(out, "main");
 	int index;
 
 	/* Main loop */
@@ -193,11 +201,22 @@ int main(int argc, char *argv[])
 
 /* Function definitions */
 
+void cerror(void *ptr, char *where)
+{
+	if (ptr == NULL){
+		fprintf(stderr, "Out of memory in: %s\n.", *where);
+		exit(1);
+	}
+
+}
+
+
 struct settings processInputs(struct settings defaultSettings, int argc, char *argv[])
 {
 	/* Copy the input to the output */
 	struct settings processed = defaultSettings;
 	processed.output = calloc(100, sizeof(char));
+	cerror(processed.output, "processInputs");
 	/* Modify the output structure according to the user inputs */
 	/* char output[100] = "D:\\output.txt"; */
 	int c; /* first character of the current input argument string */
@@ -235,6 +254,8 @@ struct settings processInputs(struct settings defaultSettings, int argc, char *a
 }
 
 void printHelp()
+/* Print help message to screen either if it is directly asked with the -h flag or
+   if unexpected syntax is found */
 {
 	printf("\nUsage:   OfflineBestFit [OPTIONS] input\n\n");
 	printf("\t OPTIONS\n");
@@ -287,6 +308,7 @@ void loadData(struct item *inputItems, int N, char *inputFileName)
 	const int filmNameLength = 255; /* maximum length of the name of a film */
 	for (int k = 0; k < N; k++){
 		inputItems[k].tag = calloc(filmNameLength, sizeof(char));
+		cerror(inputItems[k].tag, "loadData");
 	}
 	rewind(inputStream); /* go back to the start of the file */
 	char row[300]; /* contains one row of the file */
