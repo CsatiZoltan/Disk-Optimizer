@@ -16,17 +16,16 @@ SIAM J. Comput., 3(4), 299–325., 1974
 
 
 /* Function prototypes */
-//TODO delete input variable names, just leave the types
 
 struct settings processInputs(struct settings defaultSettings, int argc, char *argv[]);
 void printHelp();
 int nlines(char *inputFileName);
-int loadData(struct item *inputItems, int N, char *inputFileName);
+void loadData(struct item *inputItems, int N, char *inputFileName);
 void sortDescend(struct item inputStructure[], int nItem);
 void freeSpace(struct bin binArray[], double frSpc[], double binSize, int nBin);
 void processNegativeValues(double frSpc[], struct item, double output[], double binSize, int nBin);
 int  minimum(double output[], int nBin);
-int saveData(struct bin *binArray, char *outputFileName, char version[]);
+int saveData(struct bin *binArray, char *outputFileName, int nBins, char version[]);
 void printBinStructure(struct bin *binArray, int nBins, int nItems);
 void printItemStructure(struct item *itemArray, int nItems);
 
@@ -53,9 +52,8 @@ struct settings{
 	char *version;
 	int errorOccured;
 };
-struct settings defaultSettings = { "C:\\Users\\Zozo\\Downloads\\input.txt", "C:\\out.txt", 0, "1.0", 0 }; // TODO update it when the version changes
-// TODO use typedef on settings struct
-static char version[] = "1.0"; // TODO update it when the version changes
+/* struct settings defaultSettings = { "C:\\Users\\Zozo\\Downloads\\input.txt", "C:\\out.txt", 0, "1.0", 0 }; // TODO update it when the version changes */
+static char version[] = "1.0"; /* update it when the version changes */
 
 
 int main(int argc, char *argv[])
@@ -63,10 +61,6 @@ int main(int argc, char *argv[])
 	/* =========== Preprocessing =========== */
 
 	/* Process input data */
-	/*struct settings processedInputs = processInputs(defaultSettings, argc, argv);
-	if (processedInputs.errorOccured)
-	return -1;*/
-	/* Default settings */
 	char inputFileName[200];   /* input location */
 	char outputFileName[200];  /* output location */
 	int append = 0; /*  */
@@ -110,6 +104,7 @@ int main(int argc, char *argv[])
 			return -3;
 		}
 	}
+
 	/* If the user has not given the output file, save it to the same directory as the input file */
 	if (!outputGiven)
 	{
@@ -134,10 +129,10 @@ int main(int argc, char *argv[])
 	if (N == -5)
 		return -5;
 	struct item *givenStructure = calloc(N, sizeof(struct item));
-	int isUnSuccesful = loadData(givenStructure, N, inputFileName); // perhaps loadData should be void, since read-access has already been checked in nlines
+	loadData(givenStructure, N, inputFileName);
+
 	/* Sort input array in descending order */
 	sortDescend(givenStructure, N);
-	// printItemStructure(givenStructure, N); /* check whether correct */
 
 	/* Exclude elements that do not fit into a bin */
 	double binSize = 4.5; /* (normally from the user) */
@@ -152,14 +147,13 @@ int main(int argc, char *argv[])
 	for (i = startIndex; i < N; i++)
 		totalSum += givenStructure[i].itemSize;
 	double optimum = ceil(totalSum / binSize); /* if we could slice the items */
-	int nBins = (int)ceil(11 / 9.0*optimum); /* number of bins (see literature [1]) */
+	int nBins = (int)ceil(11/9.0 * optimum); /* number of bins (see literature [1]) */
 
 	/* Dynamically allocate the nested structures (use calloc so that zero-filling is done) */
 	struct bin *binArray = calloc(nBins, sizeof(struct bin)); /* create the bins */
 	for (int j = 0; j < nBins; j++) /* dynamically allocate members of the array of bin structures */
 	{
 		binArray[j].itemArray = calloc(nItems, sizeof(struct item)); /* create the structures holding the items*/
-		// TODO handle the case when allocation fails
 	}
 
 
@@ -173,24 +167,18 @@ int main(int argc, char *argv[])
 	for (i = startIndex; i<N; i++) /* loop through the items */
 	{
 		freeSpace(binArray, frSpc, binSize, nBins);
-		/*for (k=0; k<nBin; k++)
-		printf("freeSpace[%d] = %f\n", k, frSpc[k]);*/
 		processNegativeValues(frSpc, givenStructure[i], out, binSize, nBins);
-		/*for (k=0; k<nBin; k++)
-		printf("Negative[%d] = %f\n", k, out[k]);*/
 		index = minimum(out, nBins);
 		int whereToPut = binArray[index].nextIndex; /* where to put the current item */
 		binArray[index].itemArray[whereToPut] = givenStructure[i];
 		binArray[index].nextIndex++;
 		binArray[index].usedSpace += givenStructure[i].itemSize;
-		printBinStructure(binArray, nBins, nItems);
 	}
-	getchar();
 
 
 	/* ========== Create output ========== */
 
-	saveData(binArray, outputFileName, version);
+	saveData(binArray, outputFileName, nBins, version);
 	getchar();
 
 	/* Release the dynamically allocated space */
@@ -211,7 +199,7 @@ struct settings processInputs(struct settings defaultSettings, int argc, char *a
 	struct settings processed = defaultSettings;
 	processed.output = calloc(100, sizeof(char));
 	/* Modify the output structure according to the user inputs */
-	//char output[100] = "D:\\output.txt";
+	/* char output[100] = "D:\\output.txt"; */
 	int c; /* first character of the current input argument string */
 	while (--argc > 0 & **++argv == '-')
 	{
@@ -230,11 +218,11 @@ struct settings processInputs(struct settings defaultSettings, int argc, char *a
 			else if (c == 'v')
 				printf("version: %s\n", defaultSettings.version); /* program version */
 			else if (c == 'h')
-				printHelp;
+				printHelp();
 			else
 			{
 				printf("Unknown option.\n");
-				printHelp;
+				printHelp();
 			}
 		}
 	}
@@ -256,6 +244,7 @@ void printHelp()
 	printf("\t -v: program version\n\n");
 }
 
+
 int nlines(char *inputFileName)
 /* Number of lines in the file */
 {
@@ -269,7 +258,6 @@ int nlines(char *inputFileName)
 	/* Count the lines */
 	int N = 0; /* number of lines */
 	int nChars = -1; /* number of characters (exclude EOF character) */
-	char penChar; /* penultimate character */
 	char currentChar = ' '; /* last character read from the file stream */
 	char lastChar; /* number of characters */
 	while (!feof(inputStream)){
@@ -287,16 +275,12 @@ int nlines(char *inputFileName)
 }
 
 
-int loadData(struct item *inputItems, int N, char *inputFileName)
+void loadData(struct item *inputItems, int N, char *inputFileName)
 /* Read the file content to the input structure */
 {
 	/* Handle the input file */
 	FILE *inputStream;
 	inputStream = fopen(inputFileName, "r");
-	if (inputStream == NULL){
-		printf("Could not open the file %s for reading.\n", inputFileName);
-		return -5;
-	}
 	/*Determine the number of items by counting the rows of the input file */
 
 	/* Process data row-by-row */
@@ -316,9 +300,6 @@ int loadData(struct item *inputItems, int N, char *inputFileName)
 		i++;
 	}
 	fclose(inputStream);
-	//free(inputItems);
-	printItemStructure(inputItems, N); // just for debugging
-	return 1;
 }
 
 
@@ -379,7 +360,7 @@ int minimum(double output[], int nBins)
 }
 
 
-int saveData(struct bin *binArray, char *outputFileName, char version[])
+int saveData(struct bin *binArray, char *outputFileName, int nBins, char version[])
 /* Write the processed structure into file */
 {
 	/* Handle the output file */
@@ -398,7 +379,7 @@ int saveData(struct bin *binArray, char *outputFileName, char version[])
 	fprintf(outputStream, "=                                               =\n");
 	fprintf(outputStream, "=================================================\n\n");
 	/* Write formatted output to file */
-	for (int j = 0; binArray[j].usedSpace > 0; j++)
+	for (int j = 0; j < nBins && binArray[j].usedSpace > 0; j++)
 	{
 		fprintf(outputStream, "\nDisk %d\n\n", j + 1);
 		for (int i = 0; i < binArray[j].nextIndex; i++)
