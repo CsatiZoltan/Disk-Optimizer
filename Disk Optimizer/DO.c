@@ -31,7 +31,7 @@ void printItemStructure(struct item *itemArray, int nItems);
 
 /* Fundamental structure declarations */
 struct bin{
-	/* One bin structure corresponds to one DVD */
+	/* One bin structure corresponds to one disk */
 	struct item *itemArray; /* every bin contains several items */
 	double binSize;         /* (constant) bin capacity */
 	double usedSpace;       /* how much space is used up */
@@ -39,7 +39,7 @@ struct bin{
 };
 
 struct item{
-	/* One item structure corresponds to one file on a DVD */
+	/* One item structure corresponds to one file on a disk */
 	char *tag;      /* name of the item */
 	double itemSize; /* size of the item */
 };
