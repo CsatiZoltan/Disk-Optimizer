@@ -10,6 +10,7 @@ SIAM J. Comput., 3(4), 299–325., 1974
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <setjmp.h>
 #include <string.h>
 #include <math.h>
@@ -63,49 +64,61 @@ int main(int argc, char *argv[])
 	/* =========== Preprocessing =========== */
 
 	/* Process input data */
+	int i; /* iteration index */
+	int append = 0; /* if append = 1 and the output file exists, append it instead of overwriting */
+	int inputRequired = 1; /* for some flags, (like -h, -v) input is not necessary */
+	int arg; /* current input argument number */
+	char flag; /* current options flag */
+	char *flags = "ahov";
+	char *flagRequireInputs = "o"; /* those flags that require at least one additional input */
+	char *flagInputs = "1"; /* required inputs for flags -o, ..., in this order */
+	char *flagIndex; /* position of flag in flagRequireInputs */
 	char inputFileName[200];   /* input location */
 	char outputFileName[200];  /* output location */
-	int append = 0; /*  */
 	int outputGiven = 0; /* user gave the output file location */
-	int i; /* iteration index */
-	for (i = 1; i < argc; i++)  /* Skip argv[0] (program name). */
-	{
-		if (strcmp(argv[i], "-a") == 0) /* append the output file instead of overwriting */
-			append = 1;
-		else if (strcmp(argv[i], "-h") == 0)
-			printHelp();
-		else if (strcmp(argv[i], "-v") == 0) /* program version */
-			printf("version: %s\n", version);
-		else if (strcmp(argv[i], "-o") == 0) /* requested output location */
-		{
-			if (argc > i + 2) /* at least two arguments (the output and the input location) follows it */
-			{
-				i++;
-				strcpy(outputFileName, argv[i]);
-				outputGiven = 1;
-			}
-			else if (argc > i + 1) /* only the output location follows it */
-			{
-				printf("The input file location is missing.\n");
-				printHelp();
-				return -1;
-			}
-			else /* both the output and the input are missing */
-			{
-				printf("The output and input file locations are missing.\n");
-				printHelp();
-				return -2;
-			}
-		}
-		else if (i == argc - 1) /* last parameter (input file location) */
-			strcpy(inputFileName, argv[i]);
-		else
-		{
-			printf("Unknown option\n");
-			printHelp();
-			return -3;
+
+	if (argc == 1)
+		printHelp();
+	argv[argc] = "";
+
+	for (arg = 1; argv[arg][0] == '-';){
+		/* If the current flag requires inputs, check if they are correct */
+		flag = argv[arg++][1];
+		if (flagIndex = strchr(flagRequireInputs, flag))
+			for (i = 0; i < flagInputs[flagIndex - flagRequireInputs] - '0'; i++)
+				if (!isalnum(argv[arg + i][0])){
+					fprintf(stderr, ("Non-alphanumerical argument to -%c\n"), flag);
+					return -2;
+				}
+		/* Process the current flag */
+		switch (flag){
+		case 'a': append = 1;
+				  break;
+		case 'o': strcpy(outputFileName, argv[arg++]);
+				  outputGiven = 1;
+				  break;
+		case 'h': printHelp();
+				  inputRequired = 0;
+				  break;
+		case 'v': printf("version 1.0\n");
+				  break;
+		default:  fprintf(stderr, ("Unknown option \"-%c\".\n"), flag);
+				  return -3;
 		}
 	}
+
+
+	if (arg == argc){
+		if (inputRequired){
+			fprintf(stderr, "No files to process.\n");
+			return -1;
+		}
+		else
+			return 0;
+	}
+	else
+		strcpy(inputFileName, argv[arg]);
+
 
 	/* If the user has not given the output file, save it to the same directory as the input file */
 	if (!outputGiven)
@@ -386,7 +399,7 @@ int saveData(struct bin *binArray, char *outputFileName, int nBins, char version
 /* Write the processed structure into file */
 {
 	/* Handle the output file */
-	FILE *outputStream; /* TODO create a file with a number after it when there is (are) file(s) already in the directory */
+	FILE *outputStream;
 	outputStream = fopen(outputFileName, "w+");
 	if (outputStream == NULL){
 		printf("Could not open the file for writing.");
