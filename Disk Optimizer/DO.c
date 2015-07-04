@@ -1,6 +1,26 @@
 /* 1D offline bin-packing algorithm
 
-Further description goes here ...
+   Distribute items among a minimum number of bins of fixed size.
+
+The program communicates with the user via command-line arguments. The items to be distributed must be given
+in a text file. This input file must contain two columns: in each row, the first entry is the name (tag) of
+the item. The second entry is (generally) a floating point number representing the size of that item.
+E.g. inp.txt contains:
+		item1 1.23
+		item2 0.9
+		item3 6.54
+		item4 3.54
+
+Syntax: 
+	DO [OPTIONS] INPUT
+		-a			append the output file instead of overwriting
+		-h			display help message
+		-o OUTPUT	save the results to OUTPUT
+		-v			display program version
+	Example: DO -o D:\output.txt C:\input.txt	// save the results to D:\output.txt, overwriting if exists
+			 DO -v -h							// display program version and help
+			 DO -a C:\input.txt					// save the results to C:\output.txt, appending if exists
+
 Bibliography:
 [1] Johnson,D.S., Demers,A., Ullman,J.D., Garey,M.R. and Graham,R.L.:
 Worst-Case Performance Bounds for Simple One-Dimensional Packing Algorithms,
