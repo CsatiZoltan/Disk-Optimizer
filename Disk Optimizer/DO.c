@@ -217,7 +217,6 @@ int main(int argc, char *argv[])
 	/* ========== Create output ========== */
 
 	saveData(binArray, outputFileName, nBins, version);
-	getchar();
 
 	/* Release the dynamically allocated space */
 	free(frSpc);
