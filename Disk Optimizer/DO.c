@@ -147,10 +147,7 @@ int main(int argc, char *argv[])
 		char *start = outputFileName; /* mark the beginning of the output file name */
 		int inputLength = strlen(inputFileName);
 		char *end = outputFileName + inputLength; /* mark the end of the output file name */
-		while (*end-- != '\\' & end > start) /* find the directory of input (i.e. until the last \) */
-		{
-			printf("%c", *end);
-		}
+		while (*end-- != '\\' & end > start); /* find the directory of input (i.e. until the last \) */
 		if (end == start) /* if \\ is not found, the input is wrong */
 		{
 			printf("Input file must contain directory or drive\n");
