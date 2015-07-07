@@ -286,7 +286,7 @@ void printHelp()
 /* Print help message to screen either if it is directly asked with the -h flag or
    if unexpected syntax is found */
 {
-	printf("\nUsage:   OfflineBestFit [OPTIONS] input\n\n");
+	printf("\nUsage:   DO [OPTIONS] input\n\n");
 	printf("\t OPTIONS\n");
 	printf("\t -a: append the output file instead of overwriting it\n");
 	printf("\t -h: print this help message\n");
