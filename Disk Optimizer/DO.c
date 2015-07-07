@@ -76,7 +76,7 @@ struct settings{
 	int errorOccured;
 };
 /* struct settings defaultSettings = { "C:\\Users\\Zozo\\Downloads\\input.txt", "C:\\out.txt", 0, "1.0", 0 }; // TODO update it when the version changes */
-static char version[] = "1.0"; /* update it when the version changes */
+static char version[] = "1.1"; /* update it when the version changes */
 
 
 int main(int argc, char *argv[])
@@ -422,9 +422,9 @@ int saveData(struct bin *binArray, char *outputFileName, int nBins, char version
 		return -6;
 	}
 	/* Print header text (time, author, program version, etc.) */
-	fprintf(outputStream, "========== Created with OfflineBestFit ==========\n");
+	fprintf(outputStream, "========== Created with Disk Optimizer ==========\n");
 	fprintf(outputStream, "=                                               =\n");
-	fprintf(outputStream, "=   Date:                                       =\n"); /* TODO: modify using time.h to measure the current time */
+	fprintf(outputStream, "=   Date:                                       =\n");
 	fprintf(outputStream, "=   Author: Zoltan Csati                        =\n");
 	fprintf(outputStream, "=   Version: %s                                =\n", version);
 	fprintf(outputStream, "=                                               =\n");
