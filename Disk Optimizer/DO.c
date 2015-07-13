@@ -421,14 +421,23 @@ int saveData(struct bin *binArray, char *outputFileName, int nBins, char version
 		printf("Could not open the file for writing.");
 		return -6;
 	}
+
 	/* Print header text (time, author, program version, etc.) */
+	char timeBuffer[18]; /* for the converted time string */
+	time_t curTime; 
+	struct tm *locTime;
+	curTime = time(NULL); /* getting current time of system */
+	locTime = localtime(&curTime); /* converting current time to local time */
+	strftime(timeBuffer, 18, "%Y-%m-%d %H:%M", locTime); /* displaying date and time in standard format */
+
 	fprintf(outputStream, "========== Created with Disk Optimizer ==========\n");
 	fprintf(outputStream, "=                                               =\n");
-	fprintf(outputStream, "=   Date:                                       =\n");
+	fprintf(outputStream, "=   Date: %s                      =\n", timeBuffer);
 	fprintf(outputStream, "=   Author: Zoltan Csati                        =\n");
 	fprintf(outputStream, "=   Version: %s                                =\n", version);
 	fprintf(outputStream, "=                                               =\n");
 	fprintf(outputStream, "=================================================\n\n");
+
 	/* Write formatted output to file */
 	for (int j = 0; j < nBins && binArray[j].usedSpace > 0; j++)
 	{
