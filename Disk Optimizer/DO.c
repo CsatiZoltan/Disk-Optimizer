@@ -13,13 +13,15 @@ E.g. inp.txt contains:
 
 Syntax: 
 	DO [OPTIONS] INPUT
-		-a			append the output file instead of overwriting
-		-h			display help message
-		-o OUTPUT	save the results to OUTPUT
-		-v			display program version
+		-a			  append the output file instead of overwriting
+		-d DISKSIZE   disk capacity
+		-h			  display help message
+		-o OUTPUT	  save the results to OUTPUT
+		-v			  display program version
 	Example: DO -o D:\output.txt C:\input.txt	// save the results to D:\output.txt, overwriting if exists
 			 DO -v -h							// display program version and help
 			 DO -a C:\input.txt					// save the results to C:\output.txt, appending if exists
+			 DO -a -d 4.7 C:\input.txt			// same as above, but with disk size of 4.7 instead of 4.5
 
 Bibliography:
 [1] Johnson,D.S., Demers,A., Ullman,J.D., Garey,M.R. and Graham,R.L.:
@@ -89,8 +91,8 @@ int main(int argc, char *argv[])
 	int inputRequired = 1; /* for some flags, (like -h, -v) input is not necessary */
 	int arg; /* current input argument number */
 	char flag; /* current options flag */
-	char *flags = "abhov";
-	char *flagRequireInputs = "bo"; /* those flags that require at least one additional input */
+	char *flags = "adhov";
+	char *flagRequireInputs = "do"; /* those flags that require at least one additional input */
 	char *flagInputs = "11"; /* required inputs for flags -b, -o, in this order */
 	char *flagIndex; /* position of flag in flagRequireInputs */
 	char inputFileName[200];   /* input location */
@@ -115,7 +117,7 @@ int main(int argc, char *argv[])
 		switch (flag){
 		case 'a': append = 1;
 				  break;
-		case 'b': binSize = atof(argv[arg++]);
+		case 'd': binSize = atof(argv[arg++]);
 				  break;
 		case 'o': strcpy(outputFileName, argv[arg++]);
 				  outputGiven = 1;
@@ -291,9 +293,9 @@ void printHelp()
 	printf("\nUsage:   DO [OPTIONS] input\n\n");
 	printf("\t OPTIONS\n");
 	printf("\t -a: append the output file instead of overwriting it\n");
-	printf("\t -b: set the bin size (default: 4.5)\n");
+	printf("\t -d DISKSIZE: set the disk size (default: 4.5)\n");
 	printf("\t -h: print this help message\n");
-	printf("\t -o: OUTPUT: save results to the OUTPUT location\n");
+	printf("\t -o OUTPUT: save results to the OUTPUT location\n");
 	printf("\t -v: program version\n\n");
 }
 
