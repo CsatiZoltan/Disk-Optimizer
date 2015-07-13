@@ -289,6 +289,7 @@ void printHelp()
 	printf("\nUsage:   DO [OPTIONS] input\n\n");
 	printf("\t OPTIONS\n");
 	printf("\t -a: append the output file instead of overwriting it\n");
+	printf("\t -b: set the bin size (default: 4.5)\n");
 	printf("\t -h: print this help message\n");
 	printf("\t -o: OUTPUT: save results to the OUTPUT location\n");
 	printf("\t -v: program version\n\n");
