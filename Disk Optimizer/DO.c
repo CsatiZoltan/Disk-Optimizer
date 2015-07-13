@@ -48,7 +48,7 @@ void sortDescend(struct item inputStructure[], int nItem);
 void freeSpace(struct bin binArray[], double frSpc[], double binSize, int nBin);
 void processNegativeValues(double frSpc[], struct item, double output[], double binSize, int nBin);
 int  minimum(double output[], int nBin);
-int saveData(struct bin *binArray, char *outputFileName, int nBins, char version[]);
+int saveData(struct bin *binArray, char *outputFileName, int nBins, double binSize, char version[]);
 void printBinStructure(struct bin *binArray, int nBins, int nItems);
 void printItemStructure(struct item *itemArray, int nItems);
 
@@ -89,13 +89,14 @@ int main(int argc, char *argv[])
 	int inputRequired = 1; /* for some flags, (like -h, -v) input is not necessary */
 	int arg; /* current input argument number */
 	char flag; /* current options flag */
-	char *flags = "ahov";
-	char *flagRequireInputs = "o"; /* those flags that require at least one additional input */
-	char *flagInputs = "1"; /* required inputs for flags -o, ..., in this order */
+	char *flags = "abhov";
+	char *flagRequireInputs = "bo"; /* those flags that require at least one additional input */
+	char *flagInputs = "11"; /* required inputs for flags -b, -o, in this order */
 	char *flagIndex; /* position of flag in flagRequireInputs */
 	char inputFileName[200];   /* input location */
 	char outputFileName[200];  /* output location */
 	int outputGiven = 0; /* user gave the output file location */
+	double binSize = 4.5; /* disc capacity */
 
 	if (argc == 1)
 		printHelp();
@@ -113,6 +114,8 @@ int main(int argc, char *argv[])
 		/* Process the current flag */
 		switch (flag){
 		case 'a': append = 1;
+				  break;
+		case 'b': binSize = atof(argv[arg++]);
 				  break;
 		case 'o': strcpy(outputFileName, argv[arg++]);
 				  outputGiven = 1;
@@ -169,7 +172,6 @@ int main(int argc, char *argv[])
 	sortDescend(givenStructure, N);
 
 	/* Exclude elements that do not fit into a bin */
-	double binSize = 4.5; /* (normally from the user) */
 	int startIndex = 0;
 	for (i = 0; givenStructure[i].itemSize > binSize; i++)
 		startIndex++;
@@ -216,7 +218,7 @@ int main(int argc, char *argv[])
 
 	/* ========== Create output ========== */
 
-	saveData(binArray, outputFileName, nBins, version);
+	saveData(binArray, outputFileName, nBins, binSize, version);
 
 	/* Release the dynamically allocated space */
 	free(frSpc);
@@ -412,7 +414,7 @@ int minimum(double output[], int nBins)
 }
 
 
-int saveData(struct bin *binArray, char *outputFileName, int nBins, char version[])
+int saveData(struct bin *binArray, char *outputFileName, int nBins, double binSize, char version[])
 /* Write the processed structure into file */
 {
 	/* Handle the output file */
@@ -448,6 +450,7 @@ int saveData(struct bin *binArray, char *outputFileName, int nBins, char version
 			fprintf(outputStream, "   Tag: %s\n   Size: %lf\n",
 				binArray[j].itemArray[i].tag, binArray[j].itemArray[i].itemSize);
 		}
+		fprintf(outputStream, "  Remaining free space: %lf\n", binSize - binArray[j].usedSpace);
 	}
 	fclose(outputStream);
 	printf("Results were successfully written to %s\n", outputFileName);
