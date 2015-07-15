@@ -118,6 +118,10 @@ int main(int argc, char *argv[])
 		case 'a': append = 1;
 				  break;
 		case 'd': binSize = atof(argv[arg++]);
+			      if (binSize <= 0){
+				     fprintf(stderr, ("The disk capacity must be positive.\n"));
+				     return -2;
+			      }
 				  break;
 		case 'o': strcpy(outputFileName, argv[arg++]);
 				  outputGiven = 1;
