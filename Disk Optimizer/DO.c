@@ -13,13 +13,15 @@ E.g. inp.txt contains:
 
 Syntax: 
 	DO [OPTIONS] INPUT
-		-a			append the output file instead of overwriting
-		-h			display help message
-		-o OUTPUT	save the results to OUTPUT
-		-v			display program version
+		-a			  append the output file instead of overwriting
+		-d DISKSIZE   disk capacity
+		-h			  display help message
+		-o OUTPUT	  save the results to OUTPUT
+		-v			  display program version
 	Example: DO -o D:\output.txt C:\input.txt	// save the results to D:\output.txt, overwriting if exists
 			 DO -v -h							// display program version and help
 			 DO -a C:\input.txt					// save the results to C:\output.txt, appending if exists
+			 DO -a -d 4.7 C:\input.txt			// same as above, but with disk size of 4.7 instead of 4.5
 
 Bibliography:
 [1] Johnson,D.S., Demers,A., Ullman,J.D., Garey,M.R. and Graham,R.L.:
@@ -39,18 +41,18 @@ SIAM J. Comput., 3(4), 299–325., 1974
 
 /* Function prototypes */
 
-void cerror(void *ptr, char *where);
-struct settings processInputs(struct settings defaultSettings, int argc, char *argv[]);
+void cerror(void *, char *);
+/* struct settings processInputs(struct settings defaultSettings, int argc, char *argv[]); */
 void printHelp();
-int nlines(char *inputFileName);
-void loadData(struct item *inputItems, int N, char *inputFileName);
-void sortDescend(struct item inputStructure[], int nItem);
-void freeSpace(struct bin binArray[], double frSpc[], double binSize, int nBin);
-void processNegativeValues(double frSpc[], struct item, double output[], double binSize, int nBin);
-int  minimum(double output[], int nBin);
-int saveData(struct bin *binArray, char *outputFileName, int nBins, char version[]);
-void printBinStructure(struct bin *binArray, int nBins, int nItems);
-void printItemStructure(struct item *itemArray, int nItems);
+int nlines(char *);
+void loadData(struct item *, int, char *);
+void sortDescend(struct item *, int);
+void freeSpace(struct bin *, double *, double, int);
+void processNegativeValues(double *, struct item, double *, double, int);
+int  minimum(double *, int);
+int saveData(struct bin *, char *, int, double, char *);
+void printBinStructure(struct bin *, int, int);
+void printItemStructure(struct item *, int);
 
 /* Fundamental structure declarations */
 struct bin{
@@ -76,7 +78,7 @@ struct settings{
 	int errorOccured;
 };
 /* struct settings defaultSettings = { "C:\\Users\\Zozo\\Downloads\\input.txt", "C:\\out.txt", 0, "1.0", 0 }; // TODO update it when the version changes */
-static char version[] = "1.0"; /* update it when the version changes */
+static char version[] = "1.1"; /* update it when the version changes */
 
 
 int main(int argc, char *argv[])
@@ -89,13 +91,14 @@ int main(int argc, char *argv[])
 	int inputRequired = 1; /* for some flags, (like -h, -v) input is not necessary */
 	int arg; /* current input argument number */
 	char flag; /* current options flag */
-	char *flags = "ahov";
-	char *flagRequireInputs = "o"; /* those flags that require at least one additional input */
-	char *flagInputs = "1"; /* required inputs for flags -o, ..., in this order */
+	char *flags = "adhov";
+	char *flagRequireInputs = "do"; /* those flags that require at least one additional input */
+	char *flagInputs = "11"; /* required inputs for flags -b, -o, in this order */
 	char *flagIndex; /* position of flag in flagRequireInputs */
 	char inputFileName[200];   /* input location */
 	char outputFileName[200];  /* output location */
 	int outputGiven = 0; /* user gave the output file location */
+	double binSize = 4.5; /* disc capacity */
 
 	if (argc == 1)
 		printHelp();
@@ -113,6 +116,12 @@ int main(int argc, char *argv[])
 		/* Process the current flag */
 		switch (flag){
 		case 'a': append = 1;
+				  break;
+		case 'd': binSize = atof(argv[arg++]);
+			      if (binSize <= 0){
+				     fprintf(stderr, ("The disk capacity must be positive.\n"));
+				     return -2;
+			      }
 				  break;
 		case 'o': strcpy(outputFileName, argv[arg++]);
 				  outputGiven = 1;
@@ -169,7 +178,6 @@ int main(int argc, char *argv[])
 	sortDescend(givenStructure, N);
 
 	/* Exclude elements that do not fit into a bin */
-	double binSize = 4.5; /* (normally from the user) */
 	int startIndex = 0;
 	for (i = 0; givenStructure[i].itemSize > binSize; i++)
 		startIndex++;
@@ -216,8 +224,7 @@ int main(int argc, char *argv[])
 
 	/* ========== Create output ========== */
 
-	saveData(binArray, outputFileName, nBins, version);
-	getchar();
+	saveData(binArray, outputFileName, nBins, binSize, version);
 
 	/* Release the dynamically allocated space */
 	free(frSpc);
@@ -287,11 +294,12 @@ void printHelp()
 /* Print help message to screen either if it is directly asked with the -h flag or
    if unexpected syntax is found */
 {
-	printf("\nUsage:   OfflineBestFit [OPTIONS] input\n\n");
+	printf("\nUsage:   DO [OPTIONS] input\n\n");
 	printf("\t OPTIONS\n");
 	printf("\t -a: append the output file instead of overwriting it\n");
+	printf("\t -d DISKSIZE: set the disk size (default: 4.5)\n");
 	printf("\t -h: print this help message\n");
-	printf("\t -o: OUTPUT: save results to the OUTPUT location\n");
+	printf("\t -o OUTPUT: save results to the OUTPUT location\n");
 	printf("\t -v: program version\n\n");
 }
 
@@ -412,7 +420,7 @@ int minimum(double output[], int nBins)
 }
 
 
-int saveData(struct bin *binArray, char *outputFileName, int nBins, char version[])
+int saveData(struct bin *binArray, char *outputFileName, int nBins, double binSize, char version[])
 /* Write the processed structure into file */
 {
 	/* Handle the output file */
@@ -422,14 +430,23 @@ int saveData(struct bin *binArray, char *outputFileName, int nBins, char version
 		printf("Could not open the file for writing.");
 		return -6;
 	}
+
 	/* Print header text (time, author, program version, etc.) */
-	fprintf(outputStream, "========== Created with OfflineBestFit ==========\n");
+	char timeBuffer[18]; /* for the converted time string */
+	time_t curTime; 
+	struct tm *locTime;
+	curTime = time(NULL); /* getting current time of system */
+	locTime = localtime(&curTime); /* converting current time to local time */
+	strftime(timeBuffer, 18, "%Y-%m-%d %H:%M", locTime); /* displaying date and time in standard format */
+
+	fprintf(outputStream, "========== Created with Disk Optimizer ==========\n");
 	fprintf(outputStream, "=                                               =\n");
-	fprintf(outputStream, "=   Date:                                       =\n"); /* TODO: modify using time.h to measure the current time */
+	fprintf(outputStream, "=   Date: %s                      =\n", timeBuffer);
 	fprintf(outputStream, "=   Author: Zoltan Csati                        =\n");
 	fprintf(outputStream, "=   Version: %s                                =\n", version);
 	fprintf(outputStream, "=                                               =\n");
 	fprintf(outputStream, "=================================================\n\n");
+
 	/* Write formatted output to file */
 	for (int j = 0; j < nBins && binArray[j].usedSpace > 0; j++)
 	{
@@ -439,6 +456,7 @@ int saveData(struct bin *binArray, char *outputFileName, int nBins, char version
 			fprintf(outputStream, "   Tag: %s\n   Size: %lf\n",
 				binArray[j].itemArray[i].tag, binArray[j].itemArray[i].itemSize);
 		}
+		fprintf(outputStream, "  Remaining free space: %lf\n", binSize - binArray[j].usedSpace);
 	}
 	fclose(outputStream);
 	printf("Results were successfully written to %s\n", outputFileName);
