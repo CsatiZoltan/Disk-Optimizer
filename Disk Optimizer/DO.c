@@ -41,18 +41,18 @@ SIAM J. Comput., 3(4), 299–325., 1974
 
 /* Function prototypes */
 
-void cerror(void *ptr, char *where);
-struct settings processInputs(struct settings defaultSettings, int argc, char *argv[]);
+void cerror(void *, char *);
+/* struct settings processInputs(struct settings defaultSettings, int argc, char *argv[]); */
 void printHelp();
-int nlines(char *inputFileName);
-void loadData(struct item *inputItems, int N, char *inputFileName);
-void sortDescend(struct item inputStructure[], int nItem);
-void freeSpace(struct bin binArray[], double frSpc[], double binSize, int nBin);
-void processNegativeValues(double frSpc[], struct item, double output[], double binSize, int nBin);
-int  minimum(double output[], int nBin);
-int saveData(struct bin *binArray, char *outputFileName, int nBins, double binSize, char version[]);
-void printBinStructure(struct bin *binArray, int nBins, int nItems);
-void printItemStructure(struct item *itemArray, int nItems);
+int nlines(char *);
+void loadData(struct item *, int, char *);
+void sortDescend(struct item *, int);
+void freeSpace(struct bin *, double *, double, int);
+void processNegativeValues(double *, struct item, double *, double, int);
+int  minimum(double *, int);
+int saveData(struct bin *, char *, int, double, char *);
+void printBinStructure(struct bin *, int, int);
+void printItemStructure(struct item *, int);
 
 /* Fundamental structure declarations */
 struct bin{
