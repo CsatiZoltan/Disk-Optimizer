@@ -50,7 +50,7 @@ void sortDescend(struct item *, int);
 void freeSpace(struct bin *, double *, double, int);
 void processNegativeValues(double *, struct item, double *, double, int);
 int  minimum(double *, int);
-int saveData(struct bin *, char *, int, double, char *);
+int saveData(struct bin *, char *, int, double, char *, int, char *);
 void printBinStructure(struct bin *, int, int);
 void printItemStructure(struct item *, int);
 
@@ -89,16 +89,17 @@ int main(int argc, char *argv[])
 	int i; /* iteration index */
 	int append = 0; /* if append = 1 and the output file exists, append it instead of overwriting */
 	int inputRequired = 1; /* for some flags, (like -h, -v) input is not necessary */
+	char *prec = "4"; /* number of digits to be printed */
 	int arg; /* current input argument number */
 	char flag; /* current options flag */
 	char *flags = "adhov";
-	char *flagRequireInputs = "do"; /* those flags that require at least one additional input */
-	char *flagInputs = "11"; /* required inputs for flags -b, -o, in this order */
+	char *flagRequireInputs = "dop"; /* those flags that require at least one additional input */
+	char *flagInputs = "111"; /* required inputs for flags -b, -o, in this order */
 	char *flagIndex; /* position of flag in flagRequireInputs */
 	char inputFileName[200];   /* input location */
 	char outputFileName[200];  /* output location */
 	int outputGiven = 0; /* user gave the output file location */
-	double binSize = 4.5; /* disc capacity */
+	double binSize = 4700; /* disc capacity */
 
 	if (argc == 1)
 		printHelp();
@@ -126,10 +127,13 @@ int main(int argc, char *argv[])
 		case 'o': strcpy(outputFileName, argv[arg++]);
 				  outputGiven = 1;
 				  break;
+		case 'p': //prec = atoi(argv[arg++]);
+				  prec = (argv[arg++]);
+				  break;
 		case 'h': printHelp();
 				  inputRequired = 0;
 				  break;
-		case 'v': printf("version 1.0\n");
+		case 'v': printf("version 1.1\n");
 				  break;
 		default:  fprintf(stderr, ("Unknown option \"-%c\".\n"), flag);
 				  return -3;
@@ -179,8 +183,11 @@ int main(int argc, char *argv[])
 
 	/* Exclude elements that do not fit into a bin */
 	int startIndex = 0;
-	for (i = 0; givenStructure[i].itemSize > binSize; i++)
+	for (i = 0; givenStructure[i].itemSize > binSize; i++){
+		printf("Warning: file ""%s"" does not fit onto the disk.\n", givenStructure[i].tag);
 		startIndex++;
+	}
+		
 	int nItems; /* number of items */
 	nItems = N - startIndex; /* number of remaining items */
 
@@ -224,7 +231,7 @@ int main(int argc, char *argv[])
 
 	/* ========== Create output ========== */
 
-	saveData(binArray, outputFileName, nBins, binSize, version);
+	saveData(binArray, outputFileName, nBins, binSize, version, append, prec);
 
 	/* Release the dynamically allocated space */
 	free(frSpc);
@@ -420,16 +427,25 @@ int minimum(double output[], int nBins)
 }
 
 
-int saveData(struct bin *binArray, char *outputFileName, int nBins, double binSize, char version[])
+int saveData(struct bin *binArray, char *outputFileName, int nBins, double binSize, char version[], int append, char *prec)
 /* Write the processed structure into file */
 {
 	/* Handle the output file */
 	FILE *outputStream;
-	outputStream = fopen(outputFileName, "w+");
+	if (append)
+		outputStream = fopen(outputFileName, "a");
+	else
+		outputStream = fopen(outputFileName, "w+");
+
 	if (outputStream == NULL){
 		printf("Could not open the file for writing.");
 		return -6;
 	}
+
+	/* Create the precision string for printing */
+	char format[10] = "%.";
+	strcat(format, prec);
+	strcat(format, "lf\n");
 
 	/* Print header text (time, author, program version, etc.) */
 	char timeBuffer[18]; /* for the converted time string */
@@ -446,17 +462,17 @@ int saveData(struct bin *binArray, char *outputFileName, int nBins, double binSi
 	fprintf(outputStream, "=   Version: %s                                =\n", version);
 	fprintf(outputStream, "=                                               =\n");
 	fprintf(outputStream, "=================================================\n\n");
-
+	fprintf(outputStream, "Disk size: "); fprintf(outputStream, format, binSize);
 	/* Write formatted output to file */
 	for (int j = 0; j < nBins && binArray[j].usedSpace > 0; j++)
 	{
 		fprintf(outputStream, "\nDisk %d\n\n", j + 1);
 		for (int i = 0; i < binArray[j].nextIndex; i++)
 		{
-			fprintf(outputStream, "   Tag: %s\n   Size: %lf\n",
-				binArray[j].itemArray[i].tag, binArray[j].itemArray[i].itemSize);
+			fprintf(outputStream, "   Tag: %s\n   Size: ", binArray[j].itemArray[i].tag);
+			fprintf(outputStream, format, binArray[j].itemArray[i].itemSize);
 		}
-		fprintf(outputStream, "  Remaining free space: %lf\n", binSize - binArray[j].usedSpace);
+		fprintf(outputStream, "  Remaining free space: "); fprintf(outputStream, format, binSize - binArray[j].usedSpace);
 	}
 	fclose(outputStream);
 	printf("Results were successfully written to %s\n", outputFileName);
