@@ -17,6 +17,7 @@ Syntax:
 		-d DISKSIZE   disk capacity
 		-h			  display help message
 		-o OUTPUT	  save the results to OUTPUT
+		-p PRECISION  number of digits to be printed
 		-v			  display program version
 	Example: DO -o D:\output.txt C:\input.txt	// save the results to D:\output.txt, overwriting if exists
 			 DO -v -h							// display program version and help
@@ -304,9 +305,10 @@ void printHelp()
 	printf("\nUsage:   DO [OPTIONS] input\n\n");
 	printf("\t OPTIONS\n");
 	printf("\t -a: append the output file instead of overwriting it\n");
-	printf("\t -d DISKSIZE: set the disk size (default: 4.5)\n");
+	printf("\t -d DISKSIZE: set the disk size (default: 4700)\n");
 	printf("\t -h: print this help message\n");
 	printf("\t -o OUTPUT: save results to the OUTPUT location\n");
+	printf("\t -p PRECISION: number of digits to be printed\n");
 	printf("\t -v: program version\n\n");
 }
 
