@@ -10,6 +10,9 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DO.c" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{27C0E4C5-FF91-4247-85BF-622F72D58845}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -80,9 +83,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="DO.c" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
