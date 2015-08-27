@@ -1,8 +1,8 @@
-Film1 0.2
-Film3 5.3
-Film2 4.3
-Film4 1.8
-Film5 2.1
-Film5 1.85
-Film6 1.3
-Film7 1.85
+Film1 200
+Film3 5300
+Film2 4300
+Film4 1800
+Film5 2100
+Film5 1850
+Film6 1300
+Film7 1850
