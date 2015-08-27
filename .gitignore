@@ -27,6 +27,7 @@
 *.out
 *.sav
 *.synctex.gz
+*.synctex
 *.tex
 
 ## Ignore Visual Studio temporary files, build results, and
